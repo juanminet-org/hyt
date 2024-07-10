@@ -13,7 +13,7 @@ ARG NODE_VERSION=20.15.0
 FROM node:${NODE_VERSION}-alpine as base
 
 # Set working directory for all build stages.
-WORKDIR /usr/src/app
+WORKDIR /app
 
 
 ################################################################################
@@ -47,9 +47,26 @@ COPY . .
 RUN npm run build
 
 ################################################################################
+# Create a stage for developing the application.
+FROM base as dev
+
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=package-lock.json,target=package-lock.json \
+    --mount=type=cache,target=/root/.npm \
+    npm ci
+
+USER node
+COPY . .
+
+EXPOSE 3000
+
+CMD npm run dev
+
+
+################################################################################
 # Create a new stage to run the application with minimal runtime dependencies
 # where the necessary files are copied from the build stage.
-FROM base as final
+FROM base as prod
 
 # Use production node environment by default.
 ENV NODE_ENV production
@@ -62,10 +79,10 @@ COPY package.json .
 
 # Copy the production dependencies from the deps stage and also
 # the built application from the build stage into the image.
-COPY --from=deps /usr/src/app/node_modules ./node_modules
-COPY --from=build /usr/src/app/build ./build
-COPY --from=build /usr/src/app/public ./public
-COPY --from=build /usr/src/app/src ./src
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=build /app/build ./build
+COPY --from=build /app/public ./public
+COPY --from=build app/src ./src
 
 #USER node
 
@@ -73,4 +90,5 @@ COPY --from=build /usr/src/app/src ./src
 EXPOSE 3000
 
 # Run the application.
+#ENTRYPOINT [ "ls", "src" ]
 CMD npm start

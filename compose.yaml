@@ -13,14 +13,16 @@ services:
     container_name: hyt-poc-java-app
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      target: prod
     ports:
       - 8080:8080
     depends_on:
-      db:
+      hyt-poc-db:
         condition: service_healthy
+    secrets:
+      - db-password
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/hyt-poc-db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://hyt-poc-db:5432/hyt-poc-db
       - SPRING_DATASOURCE_USERNAME=hyt-poc-user
       - SPRING_DATASOURCE_PASSWORD=hyt-poc-password
 
@@ -28,19 +30,22 @@ services:
     container_name: hyt-poc-react-app
     build:
       context: ./frontend
+      target: prod
     environment:
       NODE_ENV: production
     ports:
       - 3000:3000
-  db:
+  hyt-poc-db:
     image: postgres
     restart: always
+    user: postgres
+    secrets:
+      - db-password
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=hyt-poc-db
       - POSTGRES_USER=hyt-poc-user
-      - POSTGRES_PASSWORD=hyt-poc-password
     ports:
       - 5432:5432
     healthcheck:
@@ -50,37 +55,6 @@ services:
       retries: 5
 volumes:
   db-data:
-
-# The commented out section below is an example of how to define a PostgreSQL
-# database that your application can use. `depends_on` tells Docker Compose to
-# start the database before your application. The `db-data` volume persists the
-# database data between container restarts. The `db-password` secret is used
-# to set the database password. You must create `db/password.txt` and add
-# a password of your choosing to it before running `docker-compose up`.
-#     depends_on:
-#       db:
-#         condition: service_healthy
-#   db:
-#     image: postgres
-#     restart: always
-#     user: postgres
-#     secrets:
-#       - db-password
-#     volumes:
-#       - db-data:/var/lib/postgresql/data
-#     environment:
-#       - POSTGRES_DB=example
-#       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
-#     expose:
-#       - 5432
-#     healthcheck:
-#       test: [ "CMD", "pg_isready" ]
-#       interval: 10s
-#       timeout: 5s
-#       retries: 5
-# volumes:
-#   db-data:
-# secrets:
-#   db-password:
-#     file: db/password.txt
-
+secrets:
+  db-password:
+    file: db/password.txt
