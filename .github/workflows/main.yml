@@ -23,9 +23,10 @@ jobs:
 
       - name: Build, test, and package backend with Maven
         run: |
-          mvn -f ./backend/pom.xml package -DskipTests
+          mvn -f ./backend/pom.xml install
           mkdir -p backend/target/extracted
           java -Djarmode=layertools -jar backend/target/*.jar extract --destination backend/target/extracted
+          ls -l backend/target/extracted
 
       - name: Upload backend artifacts
         uses: actions/upload-artifact@v4
