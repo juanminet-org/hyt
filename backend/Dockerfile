@@ -109,11 +109,11 @@ RUN adduser \
     appuser
 USER appuser
 
-# Copy the executable from the "package" stage.
-COPY --from=extract build/target/extracted/dependencies/ ./
-COPY --from=extract build/target/extracted/spring-boot-loader/ ./
-COPY --from=extract build/target/extracted/snapshot-dependencies/ ./
-COPY --from=extract build/target/extracted/application/ ./
+# Copy the extracted layers from the GitHub Actions workflow
+COPY dependencies/ ./
+COPY spring-boot-loader/ ./
+COPY snapshot-dependencies/ ./
+COPY application/ ./
 
 EXPOSE 8080
 

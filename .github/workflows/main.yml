@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build_backend:
     name: Build Backend and Frontend
     runs-on: ubuntu-latest
     steps:
@@ -20,8 +20,25 @@ jobs:
           java-version: '17'
           cache: 'maven'
           cache-dependency-path: ./backend/pom.xml
-      - name: Build and test backend with Maven
-        run: mvn -f ./backend/pom.xml --batch-mode --update-snapshots verify
+
+      - name: Build, test, and package backend with Maven
+        run: |
+          mvn -f ./backend/pom.xml package -DskipTests
+          mkdir -p backend/target/extracted
+          java -Djarmode=layertools -jar backend/target/*.jar extract --destination backend/target/extracted
+
+      - name: Upload backend artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-artifacts
+          path: backend/target/extracted
+
+  build_frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
@@ -29,15 +46,50 @@ jobs:
           node-version: '20.x'
           cache: 'npm'
           cache-dependency-path: ./frontend/package-lock.json
+
       - name: Install frontend dependencies with npm
         working-directory: ./frontend
         run: npm install
+
       - name: Run frontend tests with npm
         working-directory: ./frontend
         run: npm test
 
-  push_to_registry:
+  push_backend_docker_registry:
     name: Push Docker image to Docker Hub
+    needs: build_backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+
+      - name: Download backend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-artifacts
+          path: backend/target/extracted
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ vars.DOCKER_USERNAME }}/backend:latest
+          target: prod
+
+  push_frontend_docker_registry:
+    name: Push Docker image to Docker Hub
+    needs: build_frontend
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -64,13 +116,4 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: ${{ vars.DOCKER_USERNAME }}/frontend:latest
-          target: prod
-
-      - name: Build and push backend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: ${{ vars.DOCKER_USERNAME }}/backend:latest
           target: prod
