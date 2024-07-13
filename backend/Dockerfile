@@ -110,10 +110,10 @@ RUN adduser \
 USER appuser
 
 # Copy the extracted layers from the GitHub Actions workflow
-COPY --from=build /backend/target/extracted/dependencies/ ./
-COPY --from=build /backend/target/extracted/spring-boot-loader/ ./
-COPY --from=build /backend/target/extracted/snapshot-dependencies/ ./
-COPY --from=build /backend/target/extracted/application/ ./
+COPY /backend/target/extracted/dependencies/ ./
+COPY /backend/target/extracted/spring-boot-loader/ ./
+COPY /backend/target/extracted/snapshot-dependencies/ ./
+COPY /backend/target/extracted/application/ ./
 
 EXPOSE 8080
 
