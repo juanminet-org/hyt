@@ -66,7 +66,7 @@ CMD npm run dev
 ################################################################################
 # Create a new stage to run the application with minimal runtime dependencies
 # where the necessary files are copied from the build stage.
-FROM base as prod
+FROM base as development
 
 # Use production node environment by default.
 ENV NODE_ENV production
@@ -92,3 +92,21 @@ EXPOSE 3000
 # Run the application.
 #ENTRYPOINT [ "ls", "src" ]
 CMD npm start
+
+
+################################################################################
+# Create a new stage to run the application with minimal runtime dependencies
+# where the necessary files are copied from the build stage.
+FROM base as prod
+
+# Use production node environment by default.
+ENV NODE_ENV production
+
+# Copy the build artifacts from the GitHub Actions workflow
+COPY build/ ./
+
+# Expose the port the app runs on
+EXPOSE 3000
+
+# Start the application
+CMD ["npm", "start"]
