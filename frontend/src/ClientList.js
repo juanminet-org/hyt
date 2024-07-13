@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button, ButtonGroup, Container, Table } from 'reactstrap';
-import AppNavbar from './AppNavbar';
 import { Link} from 'react-router-dom';
 
 function ClientList() {
-    const [error, setError] = useState(null);
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [, setError] = useState(null);
+    const [, setIsLoaded] = useState(false);
     const [teamMembers, setTeamMembers] = useState([]);
 
     const removeTeamMember = (id) => {
@@ -18,7 +17,7 @@ function ClientList() {
         })
         .then(() => {
            setTeamMembers(oldTeamMembers => {
-                return oldTeamMembers.filter(item => item.id != id);
+                return oldTeamMembers.filter(item => item.id !== id);
             });
         });
     }
@@ -37,6 +36,7 @@ function ClientList() {
                 }
             )
         }, []);
+
 
     const teamMemberList = teamMembers.map(teamMember => {
         return (

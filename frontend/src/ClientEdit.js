@@ -18,11 +18,11 @@ function ClientEdit() {
     const handleSubmit = event => {
         event.preventDefault();
         const requestOptions = {
-            method: (id != 'new' ? 'PUT' : 'POST'),
+            method: (id !== 'new' ? 'PUT' : 'POST'),
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(client)
         };
-        const path = '/clients' + (id != 'new' ? '/' + id : '');
+        const path = '/clients' + (id !== 'new' ? '/' + id : '');
         fetch(path, requestOptions)
         .then(item => navigate(-1));
     }
@@ -36,7 +36,7 @@ function ClientEdit() {
                 })
                 .catch(error => console.error(error));
         }
-    },[]);
+    },[id]);
 
     const title = <h2>{id ? 'Edit Team Member' : 'Add Team Member'}</h2>;
 
