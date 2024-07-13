@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_backend:
-    name: Build and test Backend Maven
+    name: BUILD - Backend Maven
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -38,7 +38,7 @@ jobs:
           path: backend/target/extracted
 
   build_frontend:
-    name: Build and test frontend npm
+    name: BUILD - Frontend npm
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -70,7 +70,7 @@ jobs:
           path: ./frontend/build
 
   push_backend_docker_registry:
-    name: Push backend docker image
+    name: DOCKER - Backend push registry
     needs: build_backend
     runs-on: ubuntu-latest
     steps:
@@ -109,7 +109,7 @@ jobs:
           target: prod
 
   push_frontend_docker_registry:
-    name: Push frontend Docker image
+    name: DOCKER - Frontend push registry
     needs: build_frontend
     runs-on: ubuntu-latest
     permissions:
