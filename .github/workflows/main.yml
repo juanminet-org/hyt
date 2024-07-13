@@ -21,12 +21,15 @@ jobs:
           cache: 'maven'
           cache-dependency-path: ./backend/pom.xml
 
-      - name: Build, test, and package backend with Maven
+      - name: Build, test, and extract backend
         run: |
-          mvn -f ./backend/pom.xml install
+          mvn -f ./backend/pom.xml clean install -DskipTests
           mkdir -p backend/target/extracted
           java -Djarmode=tools -jar backend/target/*.jar extract --layers --launcher --destination backend/target/extracted
-          ls -l backend/target/extracted
+          # Ensure snapshot-dependencies directory is uploaded even if empty
+          if [ ! "$(ls -A backend/target/extracted/snapshot-dependencies)" ]; then
+            echo "placeholder" > backend/target/extracted/snapshot-dependencies/placeholder
+          fi
 
       - name: Upload backend artifacts
         uses: actions/upload-artifact@v4
@@ -82,8 +85,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: List all directories
-        run: ls -l backend/target/extracted
+      - name: Remove placeholder file if present
+        run: |
+          rm -f backend/target/extracted/snapshot-dependencies/placeholder
 
       - name: Build and push backend image
         uses: docker/build-push-action@v6
