@@ -43,23 +43,6 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 # Copy the rest of the source files into the image.
 COPY . .
 
-# Copy the replacement script and .env template
-COPY replace-env.sh ./
-COPY .env.template ./
-
-# Set build arguments
-ARG HYT_POC_BACKEND_HOST
-
-# Replace environment variables and build the app
-ENV HYT_POC_BACKEND_HOST=$HYT_POC_BACKEND_HOST
-
-# Replace environment variables and build the app
-RUN chmod +x replace-env.sh && ./replace-env.sh
-
-# Build the app
-RUN npm run build
-
-
 ################################################################################
 # Create a new stage to run the application with minimal runtime dependencies
 # where the necessary files are copied from the build stage.
@@ -77,25 +60,20 @@ COPY package.json .
 # Copy the production dependencies from the deps stage and also
 # the built application from the build stage into the image.
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/build ./build
 COPY --from=build /app/public ./public
 COPY --from=build app/src ./src
-
-#USER node
 
 # Expose the port that the application listens on.
 EXPOSE 3000
 
 # Run the application.
-CMD npm start
-
-
+CMD ["npm", "start"]
 
 ################################################################################
 # Create a new stage to run the application with minimal runtime dependencies
 # where the necessary files are copied from the build stage.
 # Use node image for base image for all stages.
-FROM node:${NODE_VERSION}-alpine as build_prod_image
+FROM node:${NODE_VERSION}-alpine as build_prod
 
 # Install envsubst
 RUN apk add --no-cache gettext
@@ -138,7 +116,7 @@ WORKDIR /app
 
 # take local folder directory /app/build which is create in this command npm run build above  and copy to nginx folder /usr/share/nginx/html
 # the default folder for nginx is /usr/share/nginx/html because nginx require the static files to run the app. when i try to npm run build it create stic files in build folder and we copy that build folder to nginx folder
-COPY --from=build_prod_image /app/build /app/build
+COPY --from=build_prod /app/build /app/build
 
 COPY package.json .
 
