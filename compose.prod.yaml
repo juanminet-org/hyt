@@ -34,10 +34,10 @@ services:
       context: ./frontend
       target: prod
       args:
-        - HYT_POC_BACKEND_HOST=http://localhost:8080  # Pass as build arg
+        - REACT_APP_API_URL=http://localhost:8080  # Pass as build arg
     environment:
       - NODE_ENV=production
-      - HYT_POC_BACKEND_HOST=http://localhost:8080
+      - REACT_APP_API_URL=http://localhost:8080
     ports:
       - 3000:3000
     depends_on:

@@ -75,15 +75,8 @@ CMD ["npm", "start"]
 # Use node image for base image for all stages.
 FROM node:${NODE_VERSION}-alpine as build_prod
 
-# Install envsubst
-RUN apk add --no-cache gettext
-
 # Set working directory for all build stages.
 WORKDIR /app
-
-# Copy the replacement script and .env template
-COPY replace-env.sh ./
-COPY .env.template ./
 
 # Copy package.json and install dependencies
 COPY package.json .
@@ -95,14 +88,12 @@ RUN npm install
 COPY . .
 
 # Set build arguments
-ARG HYT_POC_BACKEND_HOST
+ARG REACT_APP_API_URL
 
 # Replace environment variables and build the app
-ENV HYT_POC_BACKEND_HOST=$HYT_POC_BACKEND_HOST
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
 
 # Replace environment variables and build the app
-RUN chmod +x replace-env.sh
-RUN ./replace-env.sh
 RUN npm run build
 
 ################################################################################

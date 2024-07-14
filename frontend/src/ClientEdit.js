@@ -8,7 +8,7 @@ function ClientEdit() {
     const navigate = useNavigate();
     const [client, setClient] = useState({});
 
-    const apiUrl = process.env.REACT_APP_API_URL || '/api';
+    const apiUrl = process.env.REACT_APP_API_URL || '';
 
     const handleNameInput = e => {
         setClient((previous) => ({...previous, name: e.target.value}));
@@ -24,14 +24,14 @@ function ClientEdit() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(client)
         };
-        const path = apiUrl +'/clients' + (id !== 'new' ? '/' + id : '');
+        const path = apiUrl +'/api/clients' + (id !== 'new' ? '/' + id : '');
         fetch(path, requestOptions)
             .then(item => navigate(-1));
     }
 
     useEffect(() => {
         if (id !== "new") {
-            fetch(apiUrl + '/clients/' + id)
+            fetch(apiUrl + '/api/clients/' + id)
                 .then(response => response.json())
                 .then(data => {
                     setClient(data);
