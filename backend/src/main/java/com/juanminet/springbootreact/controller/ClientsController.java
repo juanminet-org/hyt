@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/clients")
+@RequestMapping("/api/clients")
 public class ClientsController {
 
     private static final Logger log = LoggerFactory.getLogger(ClientsController.class);

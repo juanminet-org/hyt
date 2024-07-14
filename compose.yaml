@@ -19,6 +19,8 @@ services:
     depends_on:
       hyt-poc-db:
         condition: service_healthy
+    networks:
+      - app-network
     secrets:
       - db-password
     environment:
@@ -30,11 +32,18 @@ services:
     container_name: hyt-poc-react-app
     build:
       context: ./frontend
-      target: development
+      target: prod
+      args:
+        - HYT_POC_BACKEND_HOST=http://localhost:8080  # Pass as build arg
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
+      - HYT_POC_BACKEND_HOST=http://localhost:8080
     ports:
       - 3000:3000
+    depends_on:
+      - hyt-poc-java-app
+    networks:
+      - app-network
   hyt-poc-db:
     image: postgres
     restart: always
@@ -53,6 +62,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
+networks:
+  app-network:
+    driver: bridge
 volumes:
   db-data:
 secrets:

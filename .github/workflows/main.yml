@@ -144,3 +144,5 @@ jobs:
           push: true
           tags: ${{ vars.DOCKER_USERNAME }}/frontend:latest
           target: prod
+          build-args:
+            HYT_POC_BACKEND_HOST=http://localhost:8080

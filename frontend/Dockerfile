@@ -43,24 +43,21 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 # Copy the rest of the source files into the image.
 COPY . .
 
-# Run the build script.
+# Copy the replacement script and .env template
+COPY replace-env.sh ./
+COPY .env.template ./
+
+# Set build arguments
+ARG HYT_POC_BACKEND_HOST
+
+# Replace environment variables and build the app
+ENV HYT_POC_BACKEND_HOST=$HYT_POC_BACKEND_HOST
+
+# Replace environment variables and build the app
+RUN chmod +x replace-env.sh && ./replace-env.sh
+
+# Build the app
 RUN npm run build
-
-################################################################################
-# Create a stage for developing the application.
-FROM base as dev
-
-RUN --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=bind,source=package-lock.json,target=package-lock.json \
-    --mount=type=cache,target=/root/.npm \
-    npm ci
-
-USER node
-COPY . .
-
-EXPOSE 3000
-
-CMD npm run dev
 
 
 ################################################################################
@@ -90,23 +87,65 @@ COPY --from=build app/src ./src
 EXPOSE 3000
 
 # Run the application.
-#ENTRYPOINT [ "ls", "src" ]
 CMD npm start
+
 
 
 ################################################################################
 # Create a new stage to run the application with minimal runtime dependencies
 # where the necessary files are copied from the build stage.
-FROM base as prod
+# Use node image for base image for all stages.
+FROM node:${NODE_VERSION}-alpine as build_prod_image
 
-# Use production node environment by default.
+# Install envsubst
+RUN apk add --no-cache gettext
+
+# Set working directory for all build stages.
+WORKDIR /app
+
+# Copy the replacement script and .env template
+COPY replace-env.sh ./
+COPY .env.template ./
+
+# Copy package.json and install dependencies
+COPY package.json .
+
+# Install all the packages
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Set build arguments
+ARG HYT_POC_BACKEND_HOST
+
+# Replace environment variables and build the app
+ENV HYT_POC_BACKEND_HOST=$HYT_POC_BACKEND_HOST
+
+# Replace environment variables and build the app
+RUN chmod +x replace-env.sh
+RUN ./replace-env.sh
+RUN npm run build
+
+################################################################################
+# Create a new stage to run the application with minimal runtime dependencies
+# where the necessary files are copied from the build stage.
+FROM node:${NODE_VERSION}-alpine   as  prod
+# Set working directory for all build stages.
 ENV NODE_ENV production
 
-# Copy the build artifacts from the GitHub Actions workflow
-COPY build/ ./
+WORKDIR /app
+
+# take local folder directory /app/build which is create in this command npm run build above  and copy to nginx folder /usr/share/nginx/html
+# the default folder for nginx is /usr/share/nginx/html because nginx require the static files to run the app. when i try to npm run build it create stic files in build folder and we copy that build folder to nginx folder
+COPY --from=build_prod_image /app/build /app/build
+
+COPY package.json .
+
+RUN npm install -g serve
 
 # Expose the port the app runs on
 EXPOSE 3000
 
 # Start the application
-CMD ["npm", "start"]
+CMD ["serve","-s","build"]

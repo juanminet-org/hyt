@@ -8,6 +8,8 @@ function ClientEdit() {
     const navigate = useNavigate();
     const [client, setClient] = useState({});
 
+    const apiUrl = process.env.REACT_APP_API_URL || '/api';
+
     const handleNameInput = e => {
         setClient((previous) => ({...previous, name: e.target.value}));
     };
@@ -22,21 +24,21 @@ function ClientEdit() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(client)
         };
-        const path = '/clients' + (id !== 'new' ? '/' + id : '');
+        const path = apiUrl +'/clients' + (id !== 'new' ? '/' + id : '');
         fetch(path, requestOptions)
-        .then(item => navigate(-1));
+            .then(item => navigate(-1));
     }
 
     useEffect(() => {
         if (id !== "new") {
-            fetch('/clients/' + id)
+            fetch(apiUrl + '/clients/' + id)
                 .then(response => response.json())
                 .then(data => {
                     setClient(data);
                 })
                 .catch(error => console.error(error));
         }
-    },[id]);
+    },[id, apiUrl]);
 
     const title = <h2>{id ? 'Edit Team Member' : 'Add Team Member'}</h2>;
 

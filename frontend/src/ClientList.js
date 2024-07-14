@@ -7,8 +7,10 @@ function ClientList() {
     const [, setIsLoaded] = useState(false);
     const [teamMembers, setTeamMembers] = useState([]);
 
+    const apiUrl = process.env.REACT_APP_API_URL || '/api';
+
     const removeTeamMember = (id) => {
-        fetch('/clients/' + id, {
+        fetch(apiUrl + '/clients/' + id, {
             method: 'DELETE',
             headers: {
                 'Accept': 'application/json',
@@ -23,8 +25,13 @@ function ClientList() {
     }
 
     useEffect( ()=> {
-        fetch('/clients')
-            .then(response => response.json())
+        fetch(apiUrl + '/clients')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                    return response.json();
+                })
             .then(
                 (result) => {
                     setIsLoaded(true);
@@ -35,7 +42,10 @@ function ClientList() {
                     setError(error);
                 }
             )
-        }, []);
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+        }, [apiUrl]);
 
 
     const teamMemberList = teamMembers.map(teamMember => {
