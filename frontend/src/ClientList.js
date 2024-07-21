@@ -7,7 +7,7 @@ function ClientList() {
     const [, setIsLoaded] = useState(false);
     const [teamMembers, setTeamMembers] = useState([]);
 
-    const apiUrl = process.env.REACT_APP_API_URL || '';
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     const removeTeamMember = (id) => {
         fetch(apiUrl + '/api/clients/' + id, {

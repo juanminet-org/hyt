@@ -32,12 +32,9 @@ services:
     container_name: hyt-poc-react-app
     build:
       context: ./frontend
-      target: prod
-      args:
-        - REACT_APP_API_URL=http://localhost:8080  # Pass as build arg
+      target: production
     environment:
       - NODE_ENV=production
-      - REACT_APP_API_URL=http://localhost:8080
     ports:
       - 3000:3000
     depends_on:
