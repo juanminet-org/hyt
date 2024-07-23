@@ -49,13 +49,14 @@ COPY . .
 FROM base as development
 
 # Use production node environment by default.
-ENV NODE_ENV production
+ENV NODE_ENV development
 
 # Run the application as a non-root user.
 #USER node
 
 # Copy package.json so that package manager commands can be used.
 COPY package.json .
+COPY .env.development .
 
 # Copy the production dependencies from the deps stage and also
 # the built application from the build stage into the image.
@@ -73,7 +74,7 @@ CMD ["npm", "start"]
 # Create a new stage to run the application with minimal runtime dependencies
 # where the necessary files are copied from the build stage.
 # Use node image for base image for all stages.
-FROM node:${NODE_VERSION}-alpine as build_prod
+FROM --platform=linux/amd64 node:${NODE_VERSION}-alpine as build_production
 
 # Set working directory for all build stages.
 WORKDIR /app
@@ -87,19 +88,13 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Set build arguments
-ARG REACT_APP_API_URL
-
-# Replace environment variables and build the app
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
-
 # Replace environment variables and build the app
 RUN npm run build
 
 ################################################################################
 # Create a new stage to run the application with minimal runtime dependencies
 # where the necessary files are copied from the build stage.
-FROM node:${NODE_VERSION}-alpine   as  prod
+FROM --platform=linux/amd64 node:${NODE_VERSION}-alpine   as  production
 # Set working directory for all build stages.
 ENV NODE_ENV production
 
@@ -107,7 +102,7 @@ WORKDIR /app
 
 # take local folder directory /app/build which is create in this command npm run build above  and copy to nginx folder /usr/share/nginx/html
 # the default folder for nginx is /usr/share/nginx/html because nginx require the static files to run the app. when i try to npm run build it create stic files in build folder and we copy that build folder to nginx folder
-COPY --from=build_prod /app/build /app/build
+COPY --from=build_production /app/build /app/build
 
 COPY package.json .
 

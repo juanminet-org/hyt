@@ -8,7 +8,7 @@ function ClientEdit() {
     const navigate = useNavigate();
     const [client, setClient] = useState({});
 
-    const apiUrl = process.env.REACT_APP_API_URL || '';
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     const handleNameInput = e => {
         setClient((previous) => ({...previous, name: e.target.value}));
